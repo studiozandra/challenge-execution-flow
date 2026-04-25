@@ -1,0 +1,32 @@
+name: Challenge Execution Workflow
+
+on:
+  workflow_dispatch: # Allows manual trigger
+  push:
+    branches:
+      - main
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run submission script
+        env:
+          APPLICANT_NAME: ${{ secrets.APPLICANT_NAME }}
+          APPLICANT_EMAIL: ${{ secrets.APPLICANT_EMAIL }}
+          RESUME_LINK: ${{ secrets.RESUME_LINK }}
+          REPOSITORY_LINK: ${{ secrets.REPOSITORY_LINK }}
+          SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+          SUBMISSION_URL: ${{ secrets.SUBMISSION_URL }}
+        run: python apply.py
