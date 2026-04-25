@@ -3,7 +3,15 @@ import json
 import hmac
 import hashlib
 import requests
+import re
 from datetime import datetime, timezone
+
+def ensure_protocol(url):
+    if not url:
+        return url
+    if not re.match(r'^https?://', url):
+        return f"https://{url}"
+    return url
 
 def generate_payload(name, email, resume_link, repository_link, action_run_link, timestamp=None):
     if timestamp is None:
@@ -101,6 +109,11 @@ if __name__ == "__main__":
         print(f"Error: Missing required environment variables: {', '.join(missing)}")
         sys.exit(1)
 
+    # Sanitize inputs
+    resume_link = ensure_protocol(resume_link)
+    repo_link = ensure_protocol(repo_link)
+    action_run_link = ensure_protocol(action_run_link)
+
     payload_bytes = generate_payload(name, email, resume_link, repo_link, action_run_link)
     signature = sign_payload(payload_bytes, secret)
     
@@ -119,7 +132,11 @@ if __name__ == "__main__":
                 print(f"SUCCESS! Receipt: {data.get('receipt')}")
             else:
                 print("Submission failed according to response body.")
+                sys.exit(1)
         except json.JSONDecodeError:
             print("Successfully posted but response was not valid JSON.")
+            sys.exit(1)
     else:
         print(f"Failed to submit. Status: {response.status_code}")
+        # Failure to submit should be a CI failure
+        sys.exit(1)
