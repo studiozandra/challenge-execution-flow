@@ -89,9 +89,16 @@ if __name__ == "__main__":
 
     secret = os.environ.get("SIGNING_SECRET")
 
-    if not all([name, email, resume_link, repo_link, secret, action_run_link]):
-        print("Error: Missing required environment variables.")
-        print("Please set: APPLICANT_NAME, APPLICANT_EMAIL, RESUME_LINK, REPOSITORY_LINK, SIGNING_SECRET, SUBMISSION_URL")
+    missing = []
+    if not name: missing.append("APPLICANT_NAME")
+    if not email: missing.append("APPLICANT_EMAIL")
+    if not resume_link: missing.append("RESUME_LINK")
+    if not repo_link: missing.append("REPOSITORY_LINK")
+    if not secret: missing.append("SIGNING_SECRET")
+    if not os.environ.get("SUBMISSION_URL"): missing.append("SUBMISSION_URL")
+    
+    if missing:
+        print(f"Error: Missing required environment variables: {', '.join(missing)}")
         sys.exit(1)
 
     payload_bytes = generate_payload(name, email, resume_link, repo_link, action_run_link)
